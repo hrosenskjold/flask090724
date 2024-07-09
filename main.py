@@ -1,11 +1,10 @@
 import os
 import json
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = '/tmp'
+app = Flask(__name__, template_folder='templates')app.config['UPLOAD_FOLDER'] = '/tmp'
 app.config['ALLOWED_EXTENSIONS'] = {'geojson'}
 
 def allowed_file(filename):

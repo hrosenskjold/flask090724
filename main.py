@@ -40,7 +40,7 @@ def convert_geojson_to_arcgis(geojson):
 
 @app.route('/')
 def index():
-    return jsonify({"Choo Choo": "Welcome to your Flask app 🚅"})
+    return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():

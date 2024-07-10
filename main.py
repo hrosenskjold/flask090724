@@ -75,31 +75,4 @@ def upload_file():
                 geojson_data = json.load(f)
         elif filename.endswith('.zip'):
             with zipfile.ZipFile(filepath, 'r') as zip_ref:
-                zip_ref.extractall(app.config['UPLOAD_FOLDER'])
-                for fname in zip_ref.namelist():
-                    if fname.endswith('.shp'):
-                        shapefile_path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
-                        geojson_data = convert_shapefile_to_geojson(shapefile_path)
-                        break
-                else:
-                    return jsonify({'error': 'No shapefile found in ZIP'})
-        else:
-            return jsonify({'error': 'File type not supported'})
-
-        features = convert_geojson_to_arcgis(geojson_data)
-        
-        url = "https://services6.arcgis.com/QHir1urgnGYroCLG/ArcGIS/rest/services/PG_versioneret_110624/FeatureServer/0/addFeatures"
-        
-        data = {
-            "features": json.dumps(features),
-            "f": "json"
-        }
-        
-        response = requests.post(url, data=data)
-        
-        return jsonify(response.json())
-    
-    return jsonify({'error': 'File not allowed'})
-
-if __name__ == '__main__':
-    app.run(debug=True, port=os.getenv("PORT", default=5000))
+                zip_ref

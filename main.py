@@ -36,8 +36,7 @@ def convert_geojson_to_arcgis(geojson):
         
         arcgis_feature = {
             "geometry": geometry,
-            "attributes": feature['properties']
-        }
+            "attributes": feature['properties']}
         arcgis_features.append(arcgis_feature)
     return arcgis_features
 
@@ -58,12 +57,12 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
+        return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
     
     if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+        return jsonify({'error': 'No selected file'}), 400
     
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -75,4 +74,31 @@ def upload_file():
                 geojson_data = json.load(f)
         elif filename.endswith('.zip'):
             with zipfile.ZipFile(filepath, 'r') as zip_ref:
-                zip_ref
+                zip_ref.extractall(app.config['UPLOAD_FOLDER'])
+                for fname in zip_ref.namelist():
+                    if fname.endswith('.shp'):
+                        shapefile_path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
+                        geojson_data = convert_shapefile_to_geojson(shapefile_path)
+                        break
+                else:
+                    return jsonify({'error': 'No shapefile found in ZIP'}), 400
+        else:
+            return jsonify({'error': 'File type not supported'}), 400
+
+        features = convert_geojson_to_arcgis(geojson_data)
+        
+        url = "https://services6.arcgis.com/QHir1urgnGYroCLG/ArcGIS/rest/services/PG_versioneret_110624/FeatureServer/0/addFeatures"
+        
+        data = {
+            "features": json.dumps(features),
+            "f": "json"
+        }
+        
+        response = requests.post(url, data=data)
+        
+        return jsonify(response.json()), response.status_code
+    
+    return jsonify({'error': 'File not allowed'}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True, port=os.getenv("PORT", default=5000))
